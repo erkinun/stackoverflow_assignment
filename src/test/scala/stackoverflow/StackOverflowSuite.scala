@@ -46,7 +46,7 @@ class StackOverflowSuite extends FunSuite with BeforeAndAfterAll {
     assert(!StackOverflow.isQuestion(question))
   }
 
-  val question = Posting(1, 100, None, None, 100, None)
+  val question = Posting(1, 100, None, None, 100, Some("Java"))
   val answer = Posting(2, 101, None, Some(100), 50, None)
   val answer2 = Posting(2, 102, None, Some(100), 150, None)
 
@@ -96,6 +96,40 @@ class StackOverflowSuite extends FunSuite with BeforeAndAfterAll {
     val result = testObject.scoredPostings(groupedRdd).collect().toList
 
     assert(result.size == 2)
+  }
+
+  test("testing vectors for the hard result") {
+
+    val question2 = Posting(1, 105, None, None, 1523, Some("Scala"))
+    val answer3 = Posting(2, 106, None, Some(105), 123, None)
+
+    val groupedRdd = StackOverflow.sc.parallelize {
+      List((100, Iterable((question, answer), (question, answer2))),
+        (105, Iterable((question2, answer3))))
+    }
+
+    val result = testObject.scoredPostings(groupedRdd)
+
+    val vectorPostings = testObject.vectorPostings(result)
+
+    assert(vectorPostings.collect.toList.size == 2)
+  }
+
+  test("testing vectors for the scores") {
+
+    val question2 = Posting(1, 105, None, None, 1523, Some("Scala"))
+    val answer3 = Posting(2, 106, None, Some(105), 123, None)
+
+    val groupedRdd = StackOverflow.sc.parallelize {
+      List((100, Iterable((question, answer), (question, answer2))),
+        (105, Iterable((question2, answer3))))
+    }
+
+    val result = testObject.scoredPostings(groupedRdd)
+
+    val vectorPostings = testObject.vectorPostings(result)
+
+    assert(vectorPostings.collect.toList.map(vector => vector._2) == List(150, 123))
   }
 
 }

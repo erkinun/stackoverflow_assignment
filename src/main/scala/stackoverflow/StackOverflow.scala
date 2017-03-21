@@ -135,7 +135,7 @@ class StackOverflow extends Serializable {
       }
     }
 
-    ???
+    scored.map { score => (langSpread * firstLangInTag(score._1.tags, langs).get, score._2)}
   }
 
 
