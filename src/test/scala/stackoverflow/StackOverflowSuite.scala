@@ -46,10 +46,12 @@ class StackOverflowSuite extends FunSuite with BeforeAndAfterAll {
     assert(!StackOverflow.isQuestion(question))
   }
 
+  val question = Posting(1, 100, None, None, 100, None)
+  val answer = Posting(2, 101, None, Some(100), 50, None)
+  val answer2 = Posting(2, 102, None, Some(100), 150, None)
+
   test("groupedPostings shall group a question and an answer") {
 
-    val question = Posting(1, 100, None, None, 100, None)
-    val answer = Posting(2, 101, None, Some(100), 50, None)
 
     val rdd = StackOverflow.sc.parallelize(List(question, answer))
 
@@ -62,10 +64,6 @@ class StackOverflowSuite extends FunSuite with BeforeAndAfterAll {
 
   test("groupedPostings shall group a question and two answers") {
 
-    val question = Posting(1, 100, None, None, 100, None)
-    val answer = Posting(2, 101, None, Some(100), 50, None)
-    val answer2 = Posting(2, 102, None, Some(100), 50, None)
-
     val rdd = StackOverflow.sc.parallelize(List(question, answer, answer2))
 
     val result = testObject.groupedPostings(rdd).collect().toList
@@ -73,6 +71,31 @@ class StackOverflowSuite extends FunSuite with BeforeAndAfterAll {
     val expected = List((100, List((question, answer), (question, answer2))))
 
     assert(result.equals(expected))
+  }
+
+  test("/** Compute the maximum score for each posting */") {
+    val groupedRdd = StackOverflow.sc.parallelize(
+      List((100, Iterable((question, answer), (question, answer2))))
+    )
+
+    val result = testObject.scoredPostings(groupedRdd).collect().toList
+
+    assert(result.head._2 == 150)
+  }
+
+  test("/** Compute the maximum score for each posting with two questions */") {
+
+    val question2 = Posting(1, 105, None, None, 1523, None)
+    val answer3 = Posting(2, 106, None, Some(105), 123, None)
+
+    val groupedRdd = StackOverflow.sc.parallelize {
+      List((100, Iterable((question, answer), (question, answer2))),
+        (105, Iterable((question2, answer3))))
+    }
+
+    val result = testObject.scoredPostings(groupedRdd).collect().toList
+
+    assert(result.size == 2)
   }
 
 }
