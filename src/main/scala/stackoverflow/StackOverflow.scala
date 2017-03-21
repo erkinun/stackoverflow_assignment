@@ -84,12 +84,12 @@ class StackOverflow extends Serializable {
     val answersRdd = postings.filter(post => !isQuestion(post))
     val questionsRdd = postings.filter(post => isQuestion(post))
 
-    // join these two rdd whether first getting their questions id's out
-    // or get the QID during the join
+    val keyedAnswersRdd = answersRdd.map(posting => (posting.parentId.get, posting))
+    val keyedQuesRdd = questionsRdd.map(posting => (posting.id, posting))
 
-    // if you get [QID, (Question, Answer)] first, then group by QID to get the desired output
+    val joinedPostings = keyedQuesRdd.join(keyedAnswersRdd)
 
-    ???
+    joinedPostings.groupByKey()
   }
 
 

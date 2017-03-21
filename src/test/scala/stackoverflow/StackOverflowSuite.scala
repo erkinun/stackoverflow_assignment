@@ -53,9 +53,9 @@ class StackOverflowSuite extends FunSuite with BeforeAndAfterAll {
 
     val rdd = StackOverflow.sc.parallelize(List(question, answer))
 
-    val result = testObject.groupedPostings(rdd)
+    val result = testObject.groupedPostings(rdd).collect().toList
 
-    val expected = StackOverflow.sc.parallelize(List((100, List((question, answer)))))
+    val expected = List((100, List((question, answer))))
 
     assert(result.equals(expected))
   }
@@ -68,9 +68,9 @@ class StackOverflowSuite extends FunSuite with BeforeAndAfterAll {
 
     val rdd = StackOverflow.sc.parallelize(List(question, answer, answer2))
 
-    val result = testObject.groupedPostings(rdd)
+    val result = testObject.groupedPostings(rdd).collect().toList
 
-    val expected = StackOverflow.sc.parallelize(List((100, List((question, answer)), (question, answer2))))
+    val expected = List((100, List((question, answer), (question, answer2))))
 
     assert(result.equals(expected))
   }
