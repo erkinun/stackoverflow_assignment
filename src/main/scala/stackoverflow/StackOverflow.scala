@@ -76,8 +76,19 @@ class StackOverflow extends Serializable {
     })
 
 
+  def isQuestion(post: Posting): Boolean = post.postingType == 1
+
   /** Group the questions and answers together */
   def groupedPostings(postings: RDD[Posting]): RDD[(Int, Iterable[(Posting, Posting)])] = {
+
+    val answersRdd = postings.filter(post => !isQuestion(post))
+    val questionsRdd = postings.filter(post => isQuestion(post))
+
+    // join these two rdd whether first getting their questions id's out
+    // or get the QID during the join
+
+    // if you get [QID, (Question, Answer)] first, then group by QID to get the desired output
+
     ???
   }
 

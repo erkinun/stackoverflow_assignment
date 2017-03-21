@@ -34,6 +34,18 @@ class StackOverflowSuite extends FunSuite with BeforeAndAfterAll {
     assert(instantiatable, "Can't instantiate a StackOverflow object")
   }
 
+  test("isQuestion shall return true when type id is 1") {
+    val question = Posting(1, 100, None, None, 100, None)
+
+    assert(StackOverflow.isQuestion(question))
+  }
+
+  test("isQuestion shall return true when type id is 2") {
+    val question = Posting(2, 100, None, Some(1), 100, None)
+
+    assert(!StackOverflow.isQuestion(question))
+  }
+
   test("groupedPostings shall group a question and an answer") {
 
     val question = Posting(1, 100, None, None, 100, None)
