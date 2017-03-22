@@ -132,4 +132,16 @@ class StackOverflowSuite extends FunSuite with BeforeAndAfterAll {
     assert(vectorPostings.collect.toList.map(vector => vector._2) == List(150, 123))
   }
 
+
+  test("percentage should return 60 for 3 out of 5 questions ") {
+    val percent = StackOverflow.percentage(Seq((1,1), (1,2), (1,3), (2,2), (2,2)), 1)
+
+    assert(percent == 60)
+  }
+
+  test("percentage should return 40 for 2 out of 5 questions ") {
+    val percent = StackOverflow.percentage(Seq((1,1), (1,2), (1,3), (2,2), (2,2)), 2)
+
+    assert(percent == 40)
+  }
 }

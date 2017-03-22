@@ -24,7 +24,7 @@ object StackOverflow extends StackOverflow {
     val raw     = rawPostings(lines)
     val grouped = groupedPostings(raw)
     val scored  = scoredPostings(grouped)
-    val vectors = vectorPostings(scored).cache()
+    val vectors = vectorPostings(scored)//.cache()
     assert(vectors.count() == 2121822, "Incorrect number of vectors: " + vectors.count())
 
     val means   = kmeans(sampleVectors(vectors), vectors, debug = true)
@@ -137,7 +137,7 @@ class StackOverflow extends Serializable {
       }
     }
 
-    scored.map { score => (langSpread * firstLangInTag(score._1.tags, langs).get, score._2)}
+    scored.map { score => (langSpread * firstLangInTag(score._1.tags, langs).get, score._2)}.cache()
   }
 
 
@@ -304,18 +304,23 @@ class StackOverflow extends Serializable {
       // vs's are the items in each cluster [Int, Int] => 1 is lang code, 2 is score
       val langLabel: String   = langs(langSpredIndex / langSpread) // most common language in the cluster
       val langPercent: Double = {
-        val totalQuestions = vs.size
-        val favQuestions = vs.count(v => v._1 == langSpredIndex)
-
-        (favQuestions * 100) / totalQuestions
+        percentage(vs, langSpredIndex)
       }// percent of the questions in the most common language
       val clusterSize: Int    = vs.size
+      //  the median of the highest answer scores
       val medianScore: Int    = vs.map(_._2).sum / clusterSize
 
       (langLabel, langPercent, clusterSize, medianScore)
     }
 
     median.collect().map(_._2).sortBy(_._4)
+  }
+
+  def percentage(vs: Iterable[(Int, Int)], langSpredIndex: Int) = {
+    val totalQuestions = vs.size
+    val favQuestions = vs.count(v => v._1 == langSpredIndex)
+
+    (favQuestions * 100) / totalQuestions
   }
 
   def printResults(results: Array[(String, Double, Int, Int)]): Unit = {
