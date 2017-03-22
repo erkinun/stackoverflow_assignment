@@ -25,7 +25,7 @@ object StackOverflow extends StackOverflow {
     val grouped = groupedPostings(raw)
     val scored  = scoredPostings(grouped)
     val vectors = vectorPostings(scored)
-//    assert(vectors.count() == 2121822, "Incorrect number of vectors: " + vectors.count())
+    assert(vectors.count() == 2121822, "Incorrect number of vectors: " + vectors.count())
 
     val means   = kmeans(sampleVectors(vectors), vectors, debug = true)
     val results = clusterResults(means, vectors)
@@ -195,9 +195,9 @@ class StackOverflow extends Serializable {
 
     // compute the new means by averaging the values of each cluster
 
-    val newMeans = pairedVectors.groupByKey().map(grouped => averageVectors(grouped._2)).collect()
-
-    // TODO: Fill in the newMeans array
+    val pairGroup = pairedVectors.groupByKey().collect().toMap
+    val newMeans = means.map(mean => averageVectors(pairGroup(mean)))
+    
     val distance = euclideanDistance(means, newMeans)
 
     if (debug) {
