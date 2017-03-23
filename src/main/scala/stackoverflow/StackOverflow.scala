@@ -193,12 +193,16 @@ class StackOverflow extends Serializable {
   /** Main kmeans computation */
   @tailrec final def kmeans(means: Array[(Int, Int)], vectors: RDD[(Int, Int)], iter: Int = 1, debug: Boolean = false): Array[(Int, Int)] = {
 
-    val pairedVectors = vectors.map(v => (means(findClosest(v, means)), v))
+    val newMeans = means.clone()
 
     // compute the new means by averaging the values of each cluster
 
-    val pairGroup = pairedVectors.groupByKey().collect().toMap
-    val newMeans = means.map(mean => averageVectors(pairGroup(mean)))
+    val newMeansWithIndex = vectors.map(vector => findClosest(vector, means) -> vector).groupByKey.mapValues(averageVectors).collect()
+
+    newMeansWithIndex.foreach(item => newMeans.update(item._1, item._2))
+    newMeansWithIndex.foreach(item => newMeans.update(item._1, item._2))
+
+    //val newMeans = means.map(mean => averageVectors(pairGroup(mean)))
 
     val distance = euclideanDistance(means, newMeans)
 
@@ -308,7 +312,11 @@ class StackOverflow extends Serializable {
       }// percent of the questions in the most common language
       val clusterSize: Int    = vs.size
       //  the median of the highest answer scores
-      val medianScore: Int    = vs.map(_._2).sum / clusterSize
+      val medianScore: Int    = {
+        //vs.map(_._2).sum / clusterSize
+        val sorted = vs.map(_._2).toList.sortBy(x => x)
+        if (sorted.size % 2 == 1) sorted(sorted.size / 2) else (sorted(sorted.size / 2) + sorted((sorted.size / 2) - 1)) / 2
+      }
 
       (langLabel, langPercent, clusterSize, medianScore)
     }
